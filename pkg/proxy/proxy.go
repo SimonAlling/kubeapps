@@ -79,6 +79,7 @@ type AppOverview struct {
 }
 
 func (p *Proxy) getRelease(name, namespace string) (*release.Release, error) {
+	log.Println("HALLOJ getRelease")
 	release, err := p.helmClient.ReleaseContent(name)
 	if err != nil {
 		return nil, prettyError(err)
@@ -97,6 +98,7 @@ func (p *Proxy) getRelease(name, namespace string) (*release.Release, error) {
 
 // GetReleaseStatus returns the status of the given release if it exists
 func (p *Proxy) GetReleaseStatus(relName string) (release.Status_Code, error) {
+	log.Println("HALLOJ GetReleaseStatus")
 	status, err := p.helmClient.ReleaseStatus(relName)
 	if err == nil {
 		if status.Info != nil && status.Info.Status != nil {
@@ -108,6 +110,7 @@ func (p *Proxy) GetReleaseStatus(relName string) (release.Status_Code, error) {
 
 // ResolveManifest returns a manifest given the chart parameters
 func (p *Proxy) ResolveManifest(namespace, values string, ch *chart.Chart) (string, error) {
+	log.Println("HALLOJ ResolveManifest")
 	// We use the release returned after running a dry-run to know the elements to install
 	resDry, err := p.helmClient.InstallReleaseFromChart(
 		ch,
@@ -125,6 +128,7 @@ func (p *Proxy) ResolveManifest(namespace, values string, ch *chart.Chart) (stri
 
 // ResolveManifestFromRelease returns a manifest given the release name and revision
 func (p *Proxy) ResolveManifestFromRelease(releaseName string, revision int32) (string, error) {
+	log.Println("HALLOJ ResolveManifestFromRelease")
 	// We use the release returned after running a dry-run to know the components of the release
 	res, err := p.helmClient.ReleaseContent(
 		releaseName,
@@ -199,6 +203,7 @@ func getStatuses(statusQuery string) []release.Status_Code {
 
 // ListReleases lists releases in a specific namespace if given
 func (p *Proxy) ListReleases(namespace string, releaseListLimit int, status string) ([]AppOverview, error) {
+	log.Println("HALLOJ ListReleases")
 	list, err := p.helmClient.ListReleases(
 		helm.ReleaseListLimit(releaseListLimit),
 		helm.ReleaseListNamespace(namespace),
@@ -240,6 +245,7 @@ func unlock(name string) {
 
 // CreateRelease creates a tiller release
 func (p *Proxy) CreateRelease(name, namespace, values string, ch *chart.Chart) (*release.Release, error) {
+	log.Println("HALLOJ CreateRelease")
 	lock(name)
 	defer unlock(name)
 	log.Printf("Installing release %s into namespace %s", name, namespace)
@@ -259,6 +265,7 @@ func (p *Proxy) CreateRelease(name, namespace, values string, ch *chart.Chart) (
 
 // UpdateRelease upgrades a tiller release
 func (p *Proxy) UpdateRelease(name, namespace string, values string, ch *chart.Chart) (*release.Release, error) {
+	log.Println("HALLOJ UpdateRelease")
 	lock(name)
 	defer unlock(name)
 	// Check if the release already exists
@@ -282,6 +289,7 @@ func (p *Proxy) UpdateRelease(name, namespace string, values string, ch *chart.C
 
 // RollbackRelease rolls back to a specific revision
 func (p *Proxy) RollbackRelease(name, namespace string, revision int32) (*release.Release, error) {
+	log.Println("HALLOJ RollbackRelease")
 	lock(name)
 	defer unlock(name)
 	// Check if the release already exists
@@ -302,6 +310,7 @@ func (p *Proxy) RollbackRelease(name, namespace string, revision int32) (*releas
 
 // GetRelease returns the info of a release
 func (p *Proxy) GetRelease(name, namespace string) (*release.Release, error) {
+	log.Println("HALLOJ GetRelease")
 	lock(name)
 	defer unlock(name)
 	return p.getRelease(name, namespace)
@@ -309,6 +318,7 @@ func (p *Proxy) GetRelease(name, namespace string) (*release.Release, error) {
 
 // DeleteRelease deletes a release
 func (p *Proxy) DeleteRelease(name, namespace string, purge bool) error {
+	log.Println("HALLOJ DeleteRelease")
 	lock(name)
 	defer unlock(name)
 	// Validate that the release actually belongs to the namespace
