@@ -292,6 +292,7 @@ func (h *TillerProxy) UpgradeRelease(w http.ResponseWriter, req *http.Request, p
 // ListAllReleases list all releases that Tiller stores
 func (h *TillerProxy) ListAllReleases(w http.ResponseWriter, req *http.Request) {
 	apps, err := h.ProxyClient.ListReleases("", h.ListLimit, req.URL.Query().Get("statuses"))
+	log.Printf("Nu kör vi min egen Tiller-Proxy!!!!!")
 	if err != nil {
 		response.NewErrorResponse(errorCode(err), err.Error()).Write(w)
 		return
@@ -302,6 +303,8 @@ func (h *TillerProxy) ListAllReleases(w http.ResponseWriter, req *http.Request) 
 // ListReleases in the namespace given as Param
 func (h *TillerProxy) ListReleases(w http.ResponseWriter, req *http.Request, params Params) {
 	apps, err := h.ProxyClient.ListReleases(params["namespace"], h.ListLimit, req.URL.Query().Get("statuses"))
+	log.Printf("ListReleases kör vi min egen Tiller-Proxy!!!!!")
+
 	if err != nil {
 		response.NewErrorResponse(errorCode(err), err.Error()).Write(w)
 		return

@@ -27,6 +27,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kubeapps/kubeapps/cmd/cmd-backend"
+	helm3Agent "github.com/kubeapps/kubeapps/pkg/helm3agent"
 	"github.com/gorilla/mux"
 	"github.com/heptiolabs/healthcheck"
 	appRepo "github.com/kubeapps/kubeapps/cmd/apprepository-controller/pkg/client/clientset/versioned"
@@ -64,6 +66,12 @@ var (
 
 	chartsvcURL string
 )
+
+const token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Imt1YmVhcHBzLW9wZXJhdG9yLXRva2VuLWg3ZG1yIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Imt1YmVhcHBzLW9wZXJhdG9yIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMTIyMDgzZGYtNDRlMi00Y2QxLWJlMTQtMTY1NmQ4OWY1MWRlIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6a3ViZWFwcHMtb3BlcmF0b3IifQ.q3qRFLc5mcGK632aYnCp0nghVzMngO25iA7t7wHni82EF65O-VkkP-O35-JSsonnUwY-9S5X4PEUiXK3ORo_RS4rMA7c6z8op3SR2CwRWYs91ODUKIYbAxVf9OrjDG0vz2AeeGPHtQW1BPj_byaGdGvL79venydRRY3ogqJAgJwRiLbC75Ghij1FbGx4SgUgHEs7_TJW_bf_-zB89N7DQlZWwuwdFzRUOsiQojJmfE2kNz1HpoH5Ae8DrAmySiLrwGQ5OL8vE-tXUm2LJQV9Hk7-zQxugyK33CZwc4U-aRaXJUNSzzzH8XXmD_JKbHiBJ6uV-2_h-0GDWXNc1Ysvpg"
+
+/*
+const token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Imt1YmVhcHBzLW9wZXJhdG9yLXRva2VuLXY0d2pzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Imt1YmVhcHBzLW9wZXJhdG9yIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiODZkODJjYzMtYWQzNC0xMWU5LTkzZDctZjJlOTk2YjQ3NGRlIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6a3ViZWFwcHMtb3BlcmF0b3IifQ.V3YzqvLw-Os035zd3TrnJTMe3egvcbnhhbI0UP_gaqE6Ks_Fwhc5ZYNkds_VCXff_7dzJgzpgbh0ap-NuKVPb_dNcDrpClQ3s-C0jYeOzqdfzpwiRgMgUQaFfroDejtiE_cPrCYMpNG5YTowFzy6L22O6DNZ-VjDjD8fzGbFMfwD3ismIGajDxQ1_LYV898e-RGABk9QPN1GaqqU08VkJuu5bfYqj4wHlO6z6Ie2FLp6bFkR92cLiEMBxA-DWnH4ykB7glz4H0clb0gW3H0aR-0yN1TAr0tflds3J-MxCOHS4pwHCbAf0Hw1VeuFjcOwHNeCjy3QRMKB0tYP2c0RM-jllktkilQWIR7wDKFx6IaYxy1KUY8KxV4IaPHMtJN1lKYnFMSEe73EUyVtYBxgvrjnqnCkcDJZAG0cMgOr0H5SKpM6LI6mh_g5ihUvu7M7tAuUccBpnltzwwOLbE5p0Y_D0y6sSe6_hteRS4o9PCINK2ue7UeAUPAq3jQ7z_AdsLyDeFy2WfSx9aOoX35U_LrcovF5pkmflvILjDTJU8s7Cmoqftdb0ukB4bCIHBGyAb5SzqRvNCxvtZi_4n4ev2eF0K7DH1W9Fr7u2wGPbbCBtP4Eqid6kJDqGvCIliTOOxxtcrDhHTRsiZeQReDfa0qtstrVNqgyn4QTvQEtB7I"
+*/
 
 func init() {
 	settings.AddFlags(pflag.CommandLine)
@@ -152,11 +160,17 @@ func main() {
 		ProxyClient: proxy,
 	}
 
+	helm3Agent := helm3Agent.Helm3AgentNew(token)
+	cb := cmdbackend.Helm3AgentProxy{
+		LogLimit: 1,
+		Agent: helm3Agent,
+	}
+
 	// Routes
 	apiv1 := r.PathPrefix("/v1").Subrouter()
 	apiv1.Methods("GET").Path("/releases").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handler.WithoutParams(h.ListAllReleases)),
+		negroni.Wrap(handler.WithoutParams(cb.ListAllReleases)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 		authGate,

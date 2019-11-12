@@ -43,7 +43,7 @@ class Header extends React.Component<IHeaderProps, IHeaderState> {
       to: "/catalog",
     },
     {
-      children: "Service Instances (alpha)",
+      children: "Service Instances (myDashBoard)",
       namespaced: true,
       to: "/services/instances",
     },
