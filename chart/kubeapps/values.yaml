@@ -161,6 +161,27 @@ hooks:
   tolerations: []
   affinity: {}
 
+# Helm 3 Agent is da shit! TODO dev
+helm3Agent:
+  replicaCount: 1 # TODO dev
+  image:
+    # TODO This might work because _helpers.tpl extracts these fields.
+    registry: kubeapps
+    repository: helm3-agent
+    tag: dev
+  service:
+    port: 8080
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 32Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # Tiller Proxy is a secure REST API on top of Helm's Tiller component used to
 # manage Helm chart releases in the cluster from Kubeapps. Set tillerProxy.host
 # to configure a different Tiller host to use.

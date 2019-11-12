@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "kubeapps.helm3-agent.fullname" . }}
+  labels:
+    app: {{ template "kubeapps.helm3-agent.fullname" . }}
+    chart: {{ template "kubeapps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.helm3Agent.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "kubeapps.helm3-agent.fullname" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "kubeapps.helm3-agent.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ template "kubeapps.helm3-agent.fullname" . }}
+      # Increase termination timeout to let remaining operations to finish before killing the pods
+      # This is because new releases/upgrades/deletions are synchronous operations
+      terminationGracePeriodSeconds: 300
+{{- include "kubeapps.imagePullSecrets" . | indent 6 }}
+      containers:
+      - name: agent
+        image: {{ template "kubeapps.image" (list .Values.helm3Agent.image .Values.global) }}
+        command:
+        - /agent
+        args:
+        - --user-agent-comment=kubeapps/{{ .Chart.AppVersion }}
+        - --chartsvc-url=http://{{ template "kubeapps.chartsvc.fullname" . }}:{{ .Values.chartsvc.service.port }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.helm3Agent.service.port }}
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+{{ toYaml .Values.helm3Agent.resources | indent 12 }}
+    {{- with .Values.helm3Agent.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+    {{- with .Values.helm3Agent.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.helm3Agent.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

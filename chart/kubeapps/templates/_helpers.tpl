@@ -133,6 +133,13 @@ Create name for the tiller-proxy based on the fullname
 {{- end -}}
 
 {{/*
+Create name for the helm3-agent based on the fullname
+*/}}
+{{- define "kubeapps.helm3-agent.fullname" -}}
+{{ template "kubeapps.fullname" . }}-internal-helm3-agent
+{{- end -}}
+
+{{/*
 Create name for the secrets related to an app repository
 */}}
 {{- define "kubeapps.apprepository-secret.name" -}}

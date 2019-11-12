@@ -23,7 +23,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/status"
-	"helm.sh/helm/v3/pkg/action"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -36,7 +35,6 @@ var (
 )
 
 func init() {
-	log.Printf("%v\n", new(action.Configuration))
 	appMutex = make(map[string]*sync.Mutex)
 	// List of possible statuses obtained from:
 	// https://github.com/helm/helm/blob/master/cmd/helm/list.go#L214
