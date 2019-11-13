@@ -1,7 +1,9 @@
 package agent
 
-import "fmt"
+import (
+	"github.com/kubeapps/kubeapps/pkg/proxy"
+)
 
-func main() {
-	fmt.Println("HALLOJ pkg/agent/agent.go")
+type HelmClient interface {
+	ListReleases(namespace string, releaseListLimit int, status string) ([]proxy.AppOverview, error)
 }
