@@ -8,9 +8,8 @@
 #     - myRegistryKeySecretName
 #   storageClass: myStorageClass
 
-# The choice between Helm 2/Tiller and Helm 3 has to be made at deploy time.
-legacyHelm:
-  enabled: false
+# true = Helm 2/Tiller Proxy; false = Helm 3/Helmer:
+useHelm2: true
 
 # The frontend service is the main reverse proxy used to access the Kubeapps UI
 # To expose Kubeapps externally either configure the ingress object below or
