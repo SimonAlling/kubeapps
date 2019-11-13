@@ -165,12 +165,12 @@ hooks:
   affinity: {}
 
 # Helm 3 Agent is da shit! TODO dev
-helm3Agent:
+helmer:
   replicaCount: 1 # TODO dev
   image:
     # TODO This might work because _helpers.tpl extracts these fields.
     registry: kubeapps
-    repository: helm3-agent
+    repository: helmer
     tag: dev
   service:
     port: 8080

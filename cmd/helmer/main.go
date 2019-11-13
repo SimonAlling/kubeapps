@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	fmt.Println("HALLOJ cmd/helm3-agent/main.go")
+	fmt.Println("HALLOJ cmd/helmer/main.go")
 	fmt.Printf("HALLOJ %v\n", new(action.Configuration))
 }
