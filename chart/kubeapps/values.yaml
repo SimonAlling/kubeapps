@@ -9,7 +9,7 @@
 #   storageClass: myStorageClass
 
 # true = Helm 2/Tiller Proxy; false = Helm 3/Helmer:
-useHelm2: true
+useHelm2: false
 
 # The frontend service is the main reverse proxy used to access the Kubeapps UI
 # To expose Kubeapps externally either configure the ingress object below or
@@ -166,7 +166,7 @@ hooks:
 
 # Helm 3 Agent is da shit! TODO dev
 helmer:
-  replicaCount: 1 # TODO dev
+  replicaCount: 2
   image:
     # TODO This might work because _helpers.tpl extracts these fields.
     registry: kubeapps
