@@ -3,22 +3,18 @@ module github.com/kubeapps/kubeapps
 go 1.13
 
 require (
-	cloud.google.com/go v0.47.0 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/Masterminds/vcs v1.13.1 // indirect
-	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/arschles/assert v1.0.0
 	github.com/docker/cli v0.0.0-20191108105429-37f9a88c696a // indirect
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
+	github.com/fatih/color v1.7.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-test/deep v1.0.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-cmp v0.3.1
-	github.com/gophercloud/gophercloud v0.6.0 // indirect
-	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gosuri/uitable v0.0.3 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
@@ -30,7 +26,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.6 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/prometheus/procfs v0.0.6 // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/unrolled/render v1.0.1 // indirect
@@ -42,14 +37,15 @@ require (
 	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
 	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a // indirect
 	google.golang.org/grpc v1.25.1
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.5 // indirect
-	helm.sh/helm/v3 v3.0.0-rc.3
-	k8s.io/api v0.0.0-20191109101513-0171b7c15da1
-	k8s.io/apimachinery v0.0.0-20191111054156-6eb29fdf75dc
-	k8s.io/client-go v0.0.0-20191111061043-a56922badea0
+	helm.sh/helm/v3 v3.0.0
+	k8s.io/api v0.0.0-20191109155659-06f53b4b24f6
+	k8s.io/apimachinery v0.0.0-20191111122051-d86a850ea90d
+	k8s.io/client-go v0.0.0-20191111141305-357aaec4204d
 	k8s.io/helm v2.16.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubectl v0.0.0-20191111223430-169c48cabbe1 // indirect
+	k8s.io/kubectl v0.0.0-20191111145521-03a8fe2e1133 // indirect
 )
 
 replace github.com/docker/docker => github.com/docker/docker v0.0.0-20190731150326-928381b2215c

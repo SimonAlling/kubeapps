@@ -8,7 +8,6 @@ import (
 	"k8s.io/klog"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/kube"
-//	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	
@@ -16,7 +15,7 @@ import (
 
 
 type AppOverview struct {
-	ReleaseName string
+	ReleaseName   string			 `json:"releaseName"`
 	Version       string         `json:"version"`
 	Namespace     string         `json:"namespace"`
 	Icon          string         `json:"icon,omitempty"`
@@ -32,14 +31,22 @@ type Helm3Agent struct {
 	config *action.Configuration
 }
 
-func Helm3AgentNew(token string) *Helm3Agent {
+func NewHelm3Agent(token string) *Helm3Agent {
 	return &Helm3Agent{
 		config: generateConfiguration(token, ""),
 	}
 }
 
+// To be able to replace this function during unit test
+var testGenerateConfig func(token, namespace string) *action.Configuration
+
 // generateConfiguration generates a configuration from within the context of the pod
 func generateConfiguration(token, namespace string) *action.Configuration {
+	// Will only execute during unit test
+	if testGenerateConfig != nil {
+		return testGenerateConfig(token, namespace)
+	}
+
 	actionConfig := new(action.Configuration)
 
 	config, err := rest.InClusterConfig()
@@ -77,27 +84,45 @@ func generateConfiguration(token, namespace string) *action.Configuration {
 	return actionConfig
 }
 
-// ListReleases lists the current releases.
+// ListReleases lists the current releases in a given namespace
+func (agent *Helm3Agent) ListReleases(namespace string, releaseListLimit int, status string) ([]AppOverview, error) {
+	listCmd := action.NewList(agent.config)
+
+	return runListCmd(listCmd, namespace)
+}
+
+// ListAllReleases lists the current releases in all namespaces
 func (agent *Helm3Agent) ListAllReleases(namespace string, releaseListLimit int, status string) ([]AppOverview, error) {
 	listCmd := action.NewList(agent.config)
 	listCmd.AllNamespaces = true
 	listCmd.Limit = releaseListLimit
 
+	return runListCmd(listCmd, namespace)
+}
+
+
+func runListCmd(listCmd *action.List, namespace string) ([]AppOverview, error) {
+
 	releases, err := listCmd.Run()
 
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 
-	apps := make([]AppOverview, len(releases))
+	apps := make([]AppOverview, 0, len(releases))
 
-	for i, v := range releases {
-			apps[i].ReleaseName = v.Name
-			apps[i].Version = "v-kalle"
-			apps[i].Icon = v.Chart.Metadata.Icon
-			apps[i].Namespace = v.Namespace
-			apps[i].Status = v.Info.Status.String()
+	for _, v := range releases {
+		if  listCmd.AllNamespaces || namespace == v.Namespace {
+			app := AppOverview{
+				ReleaseName: v.Name,
+				Version: "1.2.3",
+				Icon: v.Chart.Metadata.Icon,
+				Namespace: v.Namespace,
+				Status: v.Info.Status.String(),
+			}
+			apps = append(apps, app)
+		}
 	}
 
-	return apps, err
+	return apps, nil
 }

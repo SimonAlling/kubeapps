@@ -10,7 +10,7 @@ type Helm3AgentMockup struct {
 	Nothing int
 }
 
-func Helm3AgentMockupNew() (*Helm3AgentMockup) {
+func NewHelm3AgentMockup() (*Helm3AgentMockup) {
 	log.Printf("Creating a Helm3 agent mockup")
 	return &Helm3AgentMockup{5}
 }

@@ -160,7 +160,7 @@ func main() {
 		ProxyClient: proxy,
 	}
 
-	helm3Agent := helm3Agent.Helm3AgentNew(token)
+	helm3Agent := helm3Agent.NewHelm3Agent(token)
 	cb := cmdbackend.Helm3AgentProxy{
 		LogLimit: 1,
 		Agent: helm3Agent,
