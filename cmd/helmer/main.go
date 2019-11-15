@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kubeapps/kubeapps/cmd/helmer/internal/handler"
-	"github.com/kubeapps/kubeapps/pkg/handlerutil"
+	theEpicAgentModule "github.com/kubeapps/kubeapps/pkg/agent"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 	"helm.sh/helm/v3/pkg/action"
@@ -23,21 +23,22 @@ func main() {
 
 	listLimit := 10 // TODO
 
-	r := mux.NewRouter()
-
 	h := handler.Helmer{
-		AgentClient: nil, // TODO
-		ListLimit:   listLimit,
+		HelmAgent: theEpicAgentModule.NewHelmAgent(),
+		ListLimit: listLimit,
 	}
+
+	r := mux.NewRouter()
+	withHelmer := handler.With(&h)
 
 	// Routes
 	apiv1 := r.PathPrefix("/v1").Subrouter()
 	apiv1.Methods("GET").Path("/releases").Handler(negroni.New(
-		negroni.Wrap(handlerutil.WithoutParams(h.ListAllReleases)),
+		negroni.Wrap(withHelmer(handler.ListAllReleases)),
 	))
-	// apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
-	// 	negroni.Wrap(handler.WithParams(h.ListReleases)),
-	// ))
+	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
+		negroni.Wrap(withHelmer(handler.ListReleases)),
+	))
 	// apiv1.Methods("POST").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 	// 	negroni.Wrap(handler.WithParams(h.CreateRelease)),
 	// ))
