@@ -8,6 +8,7 @@ import (
 	"github.com/kubeapps/kubeapps/pkg/agent"
 	"github.com/kubeapps/kubeapps/pkg/handlerutil"
 	log "github.com/sirupsen/logrus"
+	"helm.sh/helm/v3/pkg/action"
 )
 
 const (
@@ -33,30 +34,32 @@ func extractToken(headerValue string) string {
 }
 
 func With(h *Helmer) func(f dependentHandler) handlerutil.WithParams {
+	configs := map[string]*action.Configuration{}
 	return func(f dependentHandler) handlerutil.WithParams {
 		return func(w http.ResponseWriter, req *http.Request, vars handlerutil.Params) {
 			namespace := vars["namespace"]
-			if h.HelmAgent.Config == nil {
-				log.Info("HALLOJ With sketans config var nil, let's make a new one")
+			config := configs[namespace]
+			// If there is no existing config for the requested namespace, we'll create one:
+			if config == nil {
+				log.Infof("Creating new config for namespace '%s' ...", namespace)
 				token := extractToken(req.Header.Get("Authorization"))
-				h.HelmAgent.Config = agent.NewConfig(token, namespace)
-				log.Info("HALLOJ With config created")
+				config = agent.NewConfig(token, namespace)
+				configs[namespace] = config
 			}
+			h.HelmAgent.Config = config
 			f(h, w, req, vars)
 		}
 	}
 }
 
 func ListReleases(h *Helmer, w http.ResponseWriter, req *http.Request, vars handlerutil.Params) {
-	log.Info("HALLOJ ListAllReleases funkar")
+	log.Info("HALLOJ ListReleases funkar")
 	apps, err := h.HelmAgent.ListReleases(vars["namespace"], h.ListLimit, req.URL.Query().Get("statuses"))
-	log.Info("HALLOJ ListAllReleases vi klarade ListReleases")
 	if err != nil {
 		log.Info("HALLOJ err was non nil in ListAllReleases")
 		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 		return
 	}
-	log.Info("HALLOJ ListReleases nu ska vi response hahah")
 	response.NewDataResponse(apps).Write(w)
 }
 
