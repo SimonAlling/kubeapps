@@ -58,12 +58,8 @@ func main() {
 	// 	negroni.Wrap(handler.WithParams(h.DeleteRelease)),
 	// ))
 
-	log.Info("HALLOJ routes added")
-
 	n := negroni.Classic()
 	n.UseHandler(r)
-
-	log.Info("HALLOJ handler being used by negroni")
 
 	port := os.Getenv("PORT")
 	if port == "" {

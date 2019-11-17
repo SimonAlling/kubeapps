@@ -62,7 +62,6 @@ func NewConfig(token, namespace string) *action.Configuration {
 	if err != nil {
 		panic(err.Error())
 	}
-	klog.Info("HALLOJ NewConfig har config")
 	klog.Info("HALLOJ env var value is " + os.Getenv(driverEnvVar))
 	config.BearerToken = token
 	config.BearerTokenFile = ""
@@ -78,7 +77,6 @@ func NewConfig(token, namespace string) *action.Configuration {
 }
 
 func createStorage(driverType, namespace string, clientset *kubernetes.Clientset) *storage.Storage {
-	klog.Info("HALLOJ createStorage")
 	var store *storage.Storage
 	switch driverType {
 	case "secret", "secrets", "":

@@ -40,6 +40,9 @@ func With(h *Helmer) func(f dependentHandler) handlerutil.WithParams {
 			namespace := vars["namespace"]
 			config := configs[namespace]
 			// If there is no existing config for the requested namespace, we'll create one:
+			log.Info("")
+			log.Info("HALLOJ WITH: this is config:")
+			log.Info(config)
 			if config == nil {
 				log.Infof("Creating new config for namespace '%s' ...", namespace)
 				token := extractToken(req.Header.Get("Authorization"))
@@ -53,10 +56,8 @@ func With(h *Helmer) func(f dependentHandler) handlerutil.WithParams {
 }
 
 func ListReleases(h *Helmer, w http.ResponseWriter, req *http.Request, vars handlerutil.Params) {
-	log.Info("HALLOJ ListReleases funkar")
 	apps, err := h.HelmAgent.ListReleases(vars["namespace"], h.ListLimit, req.URL.Query().Get("statuses"))
 	if err != nil {
-		log.Info("HALLOJ err was non nil in ListAllReleases")
 		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 		return
 	}
