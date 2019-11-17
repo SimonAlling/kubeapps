@@ -33,8 +33,14 @@ func main() {
 
 	// Routes
 	apiv1 := r.PathPrefix("/v1").Subrouter()
+	apiv1.Methods("GET").Path("/releases/").Handler(negroni.New(
+		negroni.Wrap(withHelmer(handler.ListAllReleases)),
+	))
 	apiv1.Methods("GET").Path("/releases").Handler(negroni.New(
 		negroni.Wrap(withHelmer(handler.ListAllReleases)),
+	))
+	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases/").Handler(negroni.New(
+		negroni.Wrap(withHelmer(handler.ListReleases)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 		negroni.Wrap(withHelmer(handler.ListReleases)),
