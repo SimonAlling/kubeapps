@@ -47,7 +47,7 @@ func With(h *Helmer) func(f dependentHandler) handlerutil.WithParams {
 				log.Infof("Creating new config for namespace '%s' ...", namespace)
 				token := extractToken(req.Header.Get("Authorization"))
 				config = agent.NewConfig(token, namespace)
-				configs[namespace] = config
+				configs[namespace] = config // Woah! Incredibly imperative!!!
 			}
 			h.HelmAgent.Config = config
 			f(h, w, req, vars)
