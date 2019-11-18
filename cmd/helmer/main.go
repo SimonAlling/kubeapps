@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kubeapps/kubeapps/cmd/helmer/internal/handler"
-	theEpicAgentModule "github.com/kubeapps/kubeapps/pkg/agent"
+	"github.com/kubeapps/kubeapps/pkg/agent"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 	"helm.sh/helm/v3/pkg/action"
@@ -23,27 +23,27 @@ func main() {
 
 	listLimit := 10 // TODO
 
-	h := handler.Helmer{
-		HelmAgent: theEpicAgentModule.NewHelmAgent(),
+	options := agent.Options{
 		ListLimit: listLimit,
+		Timeout:   5000,
 	}
 
 	r := mux.NewRouter()
-	withHelmer := handler.With(&h)
+	withContext := handler.WithContext(options)
 
 	// Routes
 	apiv1 := r.PathPrefix("/v1").Subrouter()
 	apiv1.Methods("GET").Path("/releases/").Handler(negroni.New(
-		negroni.Wrap(withHelmer(handler.ListAllReleases)),
+		negroni.Wrap(withContext(handler.ListAllReleases)),
 	))
 	apiv1.Methods("GET").Path("/releases").Handler(negroni.New(
-		negroni.Wrap(withHelmer(handler.ListAllReleases)),
+		negroni.Wrap(withContext(handler.ListAllReleases)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases/").Handler(negroni.New(
-		negroni.Wrap(withHelmer(handler.ListReleases)),
+		negroni.Wrap(withContext(handler.ListReleases)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
-		negroni.Wrap(withHelmer(handler.ListReleases)),
+		negroni.Wrap(withContext(handler.ListReleases)),
 	))
 	// apiv1.Methods("POST").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 	// 	negroni.Wrap(handler.WithParams(h.CreateRelease)),

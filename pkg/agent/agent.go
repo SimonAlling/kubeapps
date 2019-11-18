@@ -18,21 +18,31 @@ import (
 
 const driverEnvVar = "HELM_DRIVER"
 
-type HelmAgent struct {
-	Config *action.Configuration
+type Options struct {
+	ListLimit int
+	Timeout   int64
 }
 
-func NewHelmAgent() HelmAgent {
-	return HelmAgent{}
+type Context struct {
+	ActionConfig *action.Configuration
+	AgentOptions Options
 }
 
-func (h *HelmAgent) ListReleases(namespace string, releaseListLimit int, status string) ([]proxy.AppOverview, error) {
-	cmd := action.NewList(h.Config)
+// type HelmAgent struct {
+// 	Config *action.Configuration
+// }
+
+// func NewHelmAgent() HelmAgent {
+// 	return HelmAgent{}
+// }
+
+func ListReleases(context Context, namespace string, status string) ([]proxy.AppOverview, error) {
+	cmd := action.NewList(context.ActionConfig)
 	klog.Info("HALLOJ ListReleases namespace is " + namespace)
 	if namespace == "" {
 		cmd.AllNamespaces = true
 	}
-	cmd.Limit = releaseListLimit
+	cmd.Limit = context.AgentOptions.ListLimit
 	releases, err := cmd.Run()
 	if err != nil {
 		return nil, err
