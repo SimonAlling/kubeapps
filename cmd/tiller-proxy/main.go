@@ -32,7 +32,6 @@ import (
 	appRepo "github.com/kubeapps/kubeapps/cmd/apprepository-controller/pkg/client/clientset/versioned"
 	"github.com/kubeapps/kubeapps/cmd/tiller-proxy/internal/handler"
 	chartUtils "github.com/kubeapps/kubeapps/pkg/chart"
-	"github.com/kubeapps/kubeapps/pkg/handlerutil"
 	tillerProxy "github.com/kubeapps/kubeapps/pkg/proxy"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -157,27 +156,27 @@ func main() {
 	apiv1 := r.PathPrefix("/v1").Subrouter()
 	apiv1.Methods("GET").Path("/releases").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithoutParams(h.ListAllReleases)),
+		negroni.Wrap(http.HandlerFunc(h.ListAllReleases)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithParams(h.ListReleases)),
+		negroni.Wrap(http.HandlerFunc(h.ListReleases)),
 	))
 	apiv1.Methods("POST").Path("/namespaces/{namespace}/releases").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithParams(h.CreateRelease)),
+		negroni.Wrap(http.HandlerFunc(h.CreateRelease)),
 	))
 	apiv1.Methods("GET").Path("/namespaces/{namespace}/releases/{releaseName}").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithParams(h.GetRelease)),
+		negroni.Wrap(http.HandlerFunc(h.GetRelease)),
 	))
 	apiv1.Methods("PUT").Path("/namespaces/{namespace}/releases/{releaseName}").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithParams(h.OperateRelease)),
+		negroni.Wrap(http.HandlerFunc(h.OperateRelease)),
 	))
 	apiv1.Methods("DELETE").Path("/namespaces/{namespace}/releases/{releaseName}").Handler(negroni.New(
 		authGate,
-		negroni.Wrap(handlerutil.WithParams(h.DeleteRelease)),
+		negroni.Wrap(http.HandlerFunc(h.DeleteRelease)),
 	))
 
 	// Chartsvc reverse proxy

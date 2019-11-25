@@ -8,22 +8,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Params a key-value map of path params
-type Params map[string]string
-
-// WithParams can be used to wrap handlers to take an extra arg for path params
-type WithParams func(http.ResponseWriter, *http.Request, Params)
-
-func (h WithParams) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	h(w, req, vars)
-}
-
-// WithoutParams can be used to wrap handlers that doesn't take params
-type WithoutParams func(http.ResponseWriter, *http.Request)
-
-func (h WithoutParams) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	h(w, req)
+func ParamIn(req *http.Request, name string) string {
+	return mux.Vars(req)[name]
 }
 
 func isNotFound(err error) bool {

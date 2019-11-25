@@ -112,7 +112,8 @@ func (h *TillerProxy) logStatus(name string) {
 }
 
 // CreateRelease creates a new release in the namespace given as Param
-func (h *TillerProxy) CreateRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
+func (h *TillerProxy) CreateRelease(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
 	log.Printf("Creating Helm Release")
 	chartDetails, ch, err := getChart(req, h.ChartClient)
 	if err != nil {
@@ -120,13 +121,13 @@ func (h *TillerProxy) CreateRelease(w http.ResponseWriter, req *http.Request, pa
 		return
 	}
 	if !h.DisableAuth {
-		manifest, err := h.ProxyClient.ResolveManifest(params["namespace"], chartDetails.Values, ch)
+		manifest, err := h.ProxyClient.ResolveManifest(namespace, chartDetails.Values, ch)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
 		userAuth := req.Context().Value(userKey).(auth.Checker)
-		forbiddenActions, err := userAuth.GetForbiddenActions(params["namespace"], "create", manifest)
+		forbiddenActions, err := userAuth.GetForbiddenActions(namespace, "create", manifest)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
@@ -136,7 +137,7 @@ func (h *TillerProxy) CreateRelease(w http.ResponseWriter, req *http.Request, pa
 			return
 		}
 	}
-	rel, err := h.ProxyClient.CreateRelease(chartDetails.ReleaseName, params["namespace"], chartDetails.Values, ch)
+	rel, err := h.ProxyClient.CreateRelease(chartDetails.ReleaseName, namespace, chartDetails.Values, ch)
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCodeWithDefault(err, http.StatusUnprocessableEntity), err.Error()).Write(w)
 		return
@@ -147,21 +148,23 @@ func (h *TillerProxy) CreateRelease(w http.ResponseWriter, req *http.Request, pa
 }
 
 // OperateRelease decides which method to call depending in the "action" query param
-func (h *TillerProxy) OperateRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
+func (h *TillerProxy) OperateRelease(w http.ResponseWriter, req *http.Request) {
 	switch req.FormValue("action") {
 	case "upgrade":
-		h.UpgradeRelease(w, req, params)
+		h.UpgradeRelease(w, req)
 	case "rollback":
-		h.RollbackRelease(w, req, params)
+		h.RollbackRelease(w, req)
 	default:
 		// By default, for maintaining compatibility, we call upgrade
-		h.UpgradeRelease(w, req, params)
+		h.UpgradeRelease(w, req)
 	}
 }
 
 // RollbackRelease performs an action over a release
-func (h *TillerProxy) RollbackRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
-	log.Printf("Rolling back %s", params["releaseName"])
+func (h *TillerProxy) RollbackRelease(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
+	releaseName := handlerutil.ParamIn(req, "releaseName")
+	log.Printf("Rolling back %s", releaseName)
 	revision := req.FormValue("revision")
 	if revision == "" {
 		response.NewErrorResponse(http.StatusUnprocessableEntity, "Missing revision to rollback in request").Write(w)
@@ -173,14 +176,14 @@ func (h *TillerProxy) RollbackRelease(w http.ResponseWriter, req *http.Request, 
 		return
 	}
 	if !h.DisableAuth {
-		manifest, err := h.ProxyClient.ResolveManifestFromRelease(params["releaseName"], int32(revisionInt))
+		manifest, err := h.ProxyClient.ResolveManifestFromRelease(releaseName, int32(revisionInt))
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
 		userAuth := req.Context().Value(userKey).(auth.Checker)
 		// Using "upgrade" action since the concept is the same
-		forbiddenActions, err := userAuth.GetForbiddenActions(params["namespace"], "upgrade", manifest)
+		forbiddenActions, err := userAuth.GetForbiddenActions(namespace, "upgrade", manifest)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
@@ -190,7 +193,7 @@ func (h *TillerProxy) RollbackRelease(w http.ResponseWriter, req *http.Request, 
 			return
 		}
 	}
-	rel, err := h.ProxyClient.RollbackRelease(params["releaseName"], params["namespace"], int32(revisionInt))
+	rel, err := h.ProxyClient.RollbackRelease(releaseName, namespace, int32(revisionInt))
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCodeWithDefault(err, http.StatusUnprocessableEntity), err.Error()).Write(w)
 		return
@@ -201,7 +204,9 @@ func (h *TillerProxy) RollbackRelease(w http.ResponseWriter, req *http.Request, 
 }
 
 // UpgradeRelease upgrades a release in the namespace given as Param
-func (h *TillerProxy) UpgradeRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
+func (h *TillerProxy) UpgradeRelease(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
+	releaseName := handlerutil.ParamIn(req, "releaseName")
 	log.Printf("Upgrading Helm Release")
 	chartDetails, ch, err := getChart(req, h.ChartClient)
 	if err != nil {
@@ -209,13 +214,13 @@ func (h *TillerProxy) UpgradeRelease(w http.ResponseWriter, req *http.Request, p
 		return
 	}
 	if !h.DisableAuth {
-		manifest, err := h.ProxyClient.ResolveManifest(params["namespace"], chartDetails.Values, ch)
+		manifest, err := h.ProxyClient.ResolveManifest(namespace, chartDetails.Values, ch)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
 		userAuth := req.Context().Value(userKey).(auth.Checker)
-		forbiddenActions, err := userAuth.GetForbiddenActions(params["namespace"], "upgrade", manifest)
+		forbiddenActions, err := userAuth.GetForbiddenActions(namespace, "upgrade", manifest)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
@@ -225,7 +230,7 @@ func (h *TillerProxy) UpgradeRelease(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 	}
-	rel, err := h.ProxyClient.UpdateRelease(params["releaseName"], params["namespace"], chartDetails.Values, ch)
+	rel, err := h.ProxyClient.UpdateRelease(releaseName, namespace, chartDetails.Values, ch)
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCodeWithDefault(err, http.StatusUnprocessableEntity), err.Error()).Write(w)
 		return
@@ -246,8 +251,9 @@ func (h *TillerProxy) ListAllReleases(w http.ResponseWriter, req *http.Request) 
 }
 
 // ListReleases in the namespace given as Param
-func (h *TillerProxy) ListReleases(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
-	apps, err := h.ProxyClient.ListReleases(params["namespace"], h.ListLimit, req.URL.Query().Get("statuses"))
+func (h *TillerProxy) ListReleases(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
+	apps, err := h.ProxyClient.ListReleases(namespace, h.ListLimit, req.URL.Query().Get("statuses"))
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 		return
@@ -256,20 +262,22 @@ func (h *TillerProxy) ListReleases(w http.ResponseWriter, req *http.Request, par
 }
 
 // GetRelease returns the release info
-func (h *TillerProxy) GetRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
-	rel, err := h.ProxyClient.GetRelease(params["releaseName"], params["namespace"])
+func (h *TillerProxy) GetRelease(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
+	releaseName := handlerutil.ParamIn(req, "releaseName")
+	rel, err := h.ProxyClient.GetRelease(releaseName, namespace)
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 		return
 	}
 	if !h.DisableAuth {
-		manifest, err := h.ProxyClient.ResolveManifest(params["namespace"], rel.Config.Raw, rel.Chart)
+		manifest, err := h.ProxyClient.ResolveManifest(namespace, rel.Config.Raw, rel.Chart)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
 		userAuth := req.Context().Value(userKey).(auth.Checker)
-		forbiddenActions, err := userAuth.GetForbiddenActions(params["namespace"], "get", manifest)
+		forbiddenActions, err := userAuth.GetForbiddenActions(namespace, "get", manifest)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
@@ -283,20 +291,22 @@ func (h *TillerProxy) GetRelease(w http.ResponseWriter, req *http.Request, param
 }
 
 // DeleteRelease removes a release from a namespace
-func (h *TillerProxy) DeleteRelease(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
+func (h *TillerProxy) DeleteRelease(w http.ResponseWriter, req *http.Request) {
+	namespace := handlerutil.ParamIn(req, "namespace")
+	releaseName := handlerutil.ParamIn(req, "releaseName")
 	if !h.DisableAuth {
-		rel, err := h.ProxyClient.GetRelease(params["releaseName"], params["namespace"])
+		rel, err := h.ProxyClient.GetRelease(releaseName, namespace)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
-		manifest, err := h.ProxyClient.ResolveManifest(params["namespace"], rel.Config.Raw, rel.Chart)
+		manifest, err := h.ProxyClient.ResolveManifest(namespace, rel.Config.Raw, rel.Chart)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
 		}
 		userAuth := req.Context().Value(userKey).(auth.Checker)
-		forbiddenActions, err := userAuth.GetForbiddenActions(params["namespace"], "delete", manifest)
+		forbiddenActions, err := userAuth.GetForbiddenActions(namespace, "delete", manifest)
 		if err != nil {
 			response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 			return
@@ -310,7 +320,7 @@ func (h *TillerProxy) DeleteRelease(w http.ResponseWriter, req *http.Request, pa
 	if req.URL.Query().Get("purge") == "1" || req.URL.Query().Get("purge") == "true" {
 		purge = true
 	}
-	err := h.ProxyClient.DeleteRelease(params["releaseName"], params["namespace"], purge)
+	err := h.ProxyClient.DeleteRelease(releaseName, namespace, purge)
 	if err != nil {
 		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
 		return

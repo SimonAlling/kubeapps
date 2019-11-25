@@ -432,17 +432,17 @@ func TestActions(t *testing.T) {
 		t.Log(test.Description)
 		switch test.Action {
 		case "create":
-			handler.CreateRelease(response, req, test.Params)
+			handler.CreateRelease(response, req)
 		case "upgrade":
-			handler.UpgradeRelease(response, req, test.Params)
+			handler.UpgradeRelease(response, req)
 		case "delete":
-			handler.DeleteRelease(response, req, test.Params)
+			handler.DeleteRelease(response, req)
 		case "get":
-			handler.GetRelease(response, req, test.Params)
+			handler.GetRelease(response, req)
 		case "rollback":
-			handler.RollbackRelease(response, req, test.Params)
+			handler.RollbackRelease(response, req)
 		case "list":
-			handler.ListReleases(response, req, test.Params)
+			handler.ListReleases(response, req)
 		case "listall":
 			handler.ListAllReleases(response, req)
 		default:
