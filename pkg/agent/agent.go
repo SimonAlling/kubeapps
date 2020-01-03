@@ -2,6 +2,7 @@ package agent
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	chartUtils "github.com/kubeapps/kubeapps/pkg/chart"
@@ -87,6 +88,21 @@ func CreateRelease(config Config, name, namespace, valueString string, ch *chart
 		return nil, err
 	}
 	return release, nil
+}
+
+func UpgradeRelease(actionConfig *action.Configuration, name string, values Values, ch *chart.Chart) (*release.Release, error) {
+	// Check if the release already exists:
+	_, err := GetRelease(actionConfig, name)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Upgrading release %s", name)
+	cmd := action.NewUpgrade(actionConfig)
+	res, err := cmd.Run(name, ch, values)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to upgrade the release: %v", err)
+	}
+	return res, nil
 }
 
 func GetRelease(actionConfig *action.Configuration, name string) (*release.Release, error) {
