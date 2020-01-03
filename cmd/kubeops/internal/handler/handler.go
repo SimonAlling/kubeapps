@@ -19,6 +19,8 @@ const (
 	nameParam      = "releaseName"
 )
 
+const requireV1Support = true
+
 // This type represents the fact that a regular handler cannot actually be created until we have access to the request,
 // because a valid action config (and hence agent config) cannot be created until then.
 // If the agent config were a "this" argument instead of an explicit argument, it would be easy to create a handler with a "zero" config.
@@ -107,6 +109,24 @@ func CreateRelease(cfg agent.Config, w http.ResponseWriter, req *http.Request, p
 		return
 	}
 	response.NewDataResponse(release).Write(w)
+}
+
+func UpgradeRelease(cfg agent.Config, w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
+	releaseName := params[nameParam]
+	_, chartMulti, err := handlerutil.ParseAndGetChart(req, cfg.ChartClient, requireV1Support)
+	if err != nil {
+		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
+		return
+	}
+	ch := chartMulti.Helm3Chart
+	// Not sure if ch.Values here is the right one:
+	rel, err := agent.UpgradeRelease(cfg.ActionConfig, releaseName, ch.Values, ch)
+	if err != nil {
+		response.NewErrorResponse(handlerutil.ErrorCode(err), err.Error()).Write(w)
+		return
+	}
+	response.NewDataResponse(newDashboardCompatibleRelease(*rel)).Write(w)
+
 }
 
 func GetRelease(cfg agent.Config, w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
