@@ -25,7 +25,7 @@ const requireV1Support = true
 // because a valid action config (and hence agent config) cannot be created until then.
 // If the agent config were a "this" argument instead of an explicit argument, it would be easy to create a handler with a "zero" config.
 // This approach practically eliminates that risk; it is much easier to use WithAgentConfig to create a handler guaranteed to use a valid agent config.
-type dependentHandler func(cfg agent.Config, w http.ResponseWriter, req *http.Request, params handlerutil.Params)
+type DependentHandler func(cfg agent.Config, w http.ResponseWriter, req *http.Request, params handlerutil.Params)
 
 func NewInClusterConfig(token string) (*rest.Config, error) {
 	config, err := rest.InClusterConfig()
@@ -40,8 +40,8 @@ func NewInClusterConfig(token string) (*rest.Config, error) {
 // WithAgentConfig takes a dependentHandler and creates a regular (WithParams) handler that,
 // for every request, will create an agent config for itself.
 // Written in a curried fashion for convenient usage; see cmd/kubeops/main.go.
-func WithAgentConfig(storageForDriver agent.StorageForDriver, options agent.Options) func(f dependentHandler) handlerutil.WithParams {
-	return func(f dependentHandler) handlerutil.WithParams {
+func WithAgentConfig(storageForDriver agent.StorageForDriver, options agent.Options) func(f DependentHandler) handlerutil.WithParams {
+	return func(f DependentHandler) handlerutil.WithParams {
 		return func(w http.ResponseWriter, req *http.Request, params handlerutil.Params) {
 			namespace := params[namespaceParam]
 			token := auth.ExtractToken(req.Header.Get(authHeader))
